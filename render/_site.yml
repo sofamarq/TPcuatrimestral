@@ -1,0 +1,27 @@
+name: 'Curso-R'
+output_dir: '.'
+navbar: # Definir un navigation bar
+  title: "Curso R" 
+  type: inverse 
+  left: # Orientación de las pestañas
+    - text: "Home" # Titulo de pestaña
+      href: index.html # Path al archivo de pestaña
+    - text: "Introducción"
+      href: Mod1.html
+    - text: "Lenguaje R"
+      href: Mod2.html
+    - text: "Estadística"
+      href: Mod3.html
+    - text: "Gráficos"
+      href: Mod4.html
+    - text: "Reportes"
+      href: Mod5.html
+    - text: "Web"
+      href: Mod6.html
+    - text: "Regresión"
+      href: Mod7.html
+output: # Output gobal
+  html_document: # Variables globales
+    self_contianed: true
+    theme: flatly
+    highlight: textmate
