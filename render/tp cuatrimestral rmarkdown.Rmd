@@ -1,0 +1,194 @@
+---
+title: "TRABAJO PRÁCTICO CUATRIMESTRAL"
+author: "Bianca Verni, Sofia Marquevich, Delfina Dupiellet"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = F, message = F)
+library(tidyverse)
+library(dbplyr)
+library(RSQLite)
+library(RColorBrewer)
+mimic_con <- dbConnect(RSQLite::SQLite(),"/Users/roberta/Downloads/mimic3_demo.db")
+dbListTables(mimic_con) #con esto veo las tablas que hay en mimic_con
+d_icd_diagnoses <- tbl(mimic_con, 'D_ICD_DIAGNOSES')
+icu_stays <- tbl(mimic_con, 'ICUSTAYS')
+diagnoses <- tbl (mimic_con, 'DIAGNOSES_ICD')
+admissions <- tbl(mimic_con, 'ADMISSIONS')
+prescriptions <- tbl(mimic_con, 'PRESCRIPTIONS')
+patients <- tbl(mimic_con, 'PATIENTS')
+```
+
+```{r codigos, include=FALSE}
+icd9_codes_n <- diagnoses %>% select(icd9_code,) %>% group_by(icd9_code) %>% summarise(code_count = n()) %>% arrange(desc(code_count))
+
+diagnoses_filter <- diagnoses %>% filter (icd9_code == '42731',)
+subjects_of_interest <- diagnoses_filter %>% select (subject_id)
+
+adm_of_interest <- diagnoses_filter %>% select (hadm_id)
+other_admissions_of_interest <- adm_of_interest %>% left_join(admissions, by = c('hadm_id' = 'hadm_id'))
+
+other_admissions_of_interest %>% group_by(hospital_expire_flag) %>% summarise(counter = n()) %>% arrange(desc(counter))
+
+live_patients <- other_admissions_of_interest %>% filter(hospital_expire_flag == 0)
+
+hadm_live <- live_patients %>% select(hadm_id)
+subject_live <- live_patients %>% select(subject_id)
+prescriptions_live_p <- hadm_live %>% left_join(prescriptions, by = c('hadm_id' = 'hadm_id')) 
+real_prescriptions_of_interest <- subject_live %>% left_join(prescriptions_live_p, by = c('subject_id' = 'subject_id'))
+
+real_prescriptions_of_interest %>% group_by(drug) %>% summarise(count = n()) %>% arrange(desc(count))
+
+dead_patients <- other_admissions_of_interest %>% filter(hospital_expire_flag == 1)
+hadm_dead <- dead_patients %>% select(hadm_id)
+subject_dead <- dead_patients %>% select(subject_id)
+i_prescriptions_dead_patients <- hadm_dead %>% left_join(prescriptions, by = c('hadm_id'='hadm_id'))
+prescriptions_dead_patients <- subject_dead %>% left_join(i_prescriptions_dead_patients, by = c('subject_id'='subject_id'))
+prescriptions_dead_patients %>% group_by(drug) %>% summarise(count = n()) %>% arrange(desc(count))
+
+perc_sodiumC_live <- 735*100/12096
+perc_sodiumC_dead <- 28*100/982
+perc_insulin_live <- 540*100/12096
+perc_insulin_dead <- 49*100/982
+```
+
+
+<h1 style = "text-align:center;" ><u> Análisis de la fibrilación auricular</u></h1>
+  
+<p style = "text-align:justify;"> En esta investigación vamos a analizar los datos de la base de datos MIMIC-III. El análisis del mismo brinda una oportunidad para comprender mejor las características clínicas y epidemiológicas de un grupo de pacientes críticamente enfermos, lo cual podría ayudar a mejorar el diagnóstico y el tratamiento de las enfermedades analizadas.</p>
+
+<p style = "text-align:justify;"> Nuestro análisis de datos se va a realizar en base a la fibrilación auricular. Esto se decidió en base a un análisis de la base de datos, donde encontramos a la fibrilación auricular entre las afecciones con mayor cantidad de repeticiones. Esto se puede ver a través de la <a href="#grafico1"> siguiente imagen</a> que presenta las recurrencias de los 10 diagnósticos más reiterados, dentro de las cuales se encuentra el que decidimos analizar, cuyo código ICD 9 (por sus siglas, International Statistical Classification of Diseases and Related Health Problems) es 42731. </p>
+
+<div id ="grafico1">
+```{r grafico1}
+icd_of_interest <-head(icd9_codes_n, n=10)
+
+ggplot(icd_of_interest, aes(x = icd9_code)) +
+  geom_bar(aes(fill = icd9_code, y = code_count), stat = "identity") +
+  labs(title = "Recurring diagnostic patterns", x = "ICD 9 code", y = "Frequency", caption = "Gráfico 1: recurrencias de los 10 diagnósticos más reiterados") +
+  guides(fill = guide_legend(title = "ICD 9 Codes")) +
+  scale_fill_manual(values = brewer.pal(10, "Paired")) +
+  theme(plot.caption = element_text(face = "italic", hjust = 0))
+
+```
+</div>
+
+<p style = "text-align:justify;"> Generalmente, la enfermedad tiene una historia de larga duración caracterizada por progresión desde la forma paroxística (donde los síntomas de fibrilación auricular aparecen y desaparecen, y generalmente duran de unos pocos minutos a horas) a la permanente (donde el ritmo irregular del corazón no puede restaurarse). Los pacientes con la misma tienen un riesgo de ACV y muerte, cinco y dos veces mayor que la población normal respectivamente.[<sup>1<sup>](http://www.scielo.edu.uy/scielo.php?script=sci_arttext&pid=S1688-04202015000300012#) </p>
+
+<p style = "text-align:justify;"> La forma progresiva de la enfermedad hace que el análisis de los tratamientos y medicamentos utilizados para atenuar los efectos sea crucial, ya que el control de la enfermedad puede evitar que progrese y provoque los síntomas más graves como mencionados anteriormente. Por lo tanto, a través de esta investigación queremos evaluar la eficacia de los distintos tratamientos disponibles, utilizando MIMIC-III para comparar los resultados de los pacientes que recibieron diferentes tratamientos y examinar el impacto de los mismos en los resultados de los pacientes. </p>
+
+<p style = "text-align:justify;"> La fibrilación auricular se trata de un ritmo cardíaco irregular y a menudo muy rápido (arritmia) que puede provocar coágulos de sangre en el corazón.[<sup>2<sup>](https://www.mayoclinic.org/es-es/diseases-conditions/atrial-fibrillation/symptoms-cau ses/syc-20350624#) La enfermedad aumenta el riesgo de accidente cerebrovascular, insuficiencia cardíaca y otras complicaciones relacionadas con el corazón. Dentro de las fibrilaciones, la misma se asocia con un mayor riesgo de muerte y con un riesgo incrementado de enfermedades renales y cardiovasculares.[<sup>3<sup>](https://www.abc.es/salud/enfermedades/abci-fibrilacion-auricular-mucho-mas-peligro sa-pensaba-201609091307_noticia.html#) </p>
+
+<center> ![](/Users/roberta/trabajo/fibrilacion.jpg) </center>
+<p>&nbsp;</p>
+
+<p style = "text-align:justify;"> Los episodios de fibrilación auricular pueden aparecer y desaparecer o ser persistentes. En muchas personas, la fibrilación auricular puede ser asintomática. Sin embargo, la fibrilación auricular puede provocar latidos cardíacos rápidos y fuertes (palpitaciones), falta de aire o debilidad. Otros síntomas incluyen dolor en el pecho, mareos y fatiga.[<sup>2<sup>](https://www.mayoclinic.org/es-es/diseases-conditions/atrial-fibrillation/symptoms-cau ses/syc-20350624#)</p>
+
+<p style = "text-align:justify;"> El tratamiento de la fibrilación auricular puede incluir medicamentos, terapia para restablecer el ritmo cardíaco y procedimientos con catéter para bloquear las señales. Utilizando las tablas de la base de datos podemos acceder a los pacientes diagnosticados con fibrilación auricular y ver qué medicamentos se recetan para los mismos. </p>
+
+<p style = "text-align:justify;"> Para realizar este análisis, planteamos las siguientes preguntas, desarrollando un código en R para responderlas. </p>
+
+  1. ¿Cuáles son las afecciones con mayor prevalencia diagnosticadas entre los pacientes      del hospital? 
+
+  2. Teniendo en cuenta que el segundo diagnóstico más reiterado es fibrilación               auricular, ¿cuántos de los pacientes que presentan esta alteración mueren durante        su estancia en el hospital? ¿Qué porcentaje del total representa?
+  
+  3. Sobre los pacientes que no fallecen durante su internación, ¿cuales son los              medicamentos que se prescriben en mayor medida?
+  
+  4. Sobre los pacientes que mueren mientras están internados, ¿cuales son los                medicamentos que se les prescriben en mayor medida?
+  
+  5. Teniendo en cuenta los dos puntos anteriores, como es la relación entre las              prescripciones de cloruro de sodio al 0.9% e insulina (los dos medicamentos más           recetados para pacientes que no fallecen)?
+  
+<p style = "text-align:justify;"> La primera pregunta fue para iniciar la investigación, y de sus resultados surgieron las siguientes. Buscamos encontrar alguna relación entre los medicamentos prescritos a los pacientes y cuáles de los mismos fallecían. Además, buscamos conocer qué tan alto es el porcentaje de mortalidad de las personas que fueron internadas con este padecimiento. </p>
+
+<p style = "text-align:justify;"> A partir de las preguntas planteadas logramos obtener algunos datos que consideramos relevantes. Los mismos se encuentran en el archivo adjunto de R y se detallan a continuación. </p>
+
+<p style = "text-align:justify;"> Entre las afecciones con mayor cantidad de repeticiones, ocupando el segundo lugar, se encuentra la fibrilación auricular, lo cual se puede ver en el <a href="#grafico1"> gráfico 1</a>. Por las razones aclaradas anteriormente, decidimos analizar distintos eventos y/o factores relacionados a los pacientes cuyo diagnóstico es ese. </p>
+
+<p style = "text-align:justify;"> A través de esto descubrimos que sobre un total de 48 pacientes, 13 mueren durante su internación, lo que representa un 27.1%, mientras que los 35 (72.9%) restantes salen con vida del hospital, ya sea porque son dados de alta o porque son trasladados a otro centro médico. El siguiente <a href="#grafico2"> gráfico </a> presenta dicha información, y resalta la diferencia entre la cantidad de pacientes que no fallecieron y los que sí. </p>
+
+<div id ="grafico2">
+```{r grafico2}
+other_admissions_of_interest %>% 
+  mutate(Died = case_when(hospital_expire_flag == 0 ~ "No", hospital_expire_flag == 1 ~ "Yes")) %>% 
+  ggplot(aes(x = hospital_expire_flag)) + 
+  geom_bar(aes(fill = Died), width = 0.7) + 
+  labs(title = "Death during hospitalization", x = NULL, y= "N of Patients", caption = "Gráfico 2: Cantidad de pacientes con fibrilación auricular que mueren/no mueren durante la internación" ) + scale_x_discrete(labels = c("No", "Yes")) + scale_fill_manual(values = c("#55C4FF","red")) +
+  theme(plot.caption = element_text(face = "italic"))
+
+```
+</div>
+
+<p style = "text-align:justify;"> Esta gran diferencia nos llevó a analizar los tratamientos que tuvieron los pacientes que no fallecieron, y lo mismo con los que sí, para investigar la causa de la misma. </p>
+
+<p style = "text-align:justify;"> Tomando los pacientes diagnosticados con fibrilación auricular que no fallecieron (que integran el 72.9%), se analiza cuales son los medicamentos prescriptos que más se repiten. Entre estos se encuentran Cloruro de sodio al 0.9%, insulina, cloruro de potasio, cloruro de sodio al 0.9% (mini bag plus), dextrosa iso-osmótica en orden de más a menos comúnmente prescriptos. </p>
+
+<div id ="grafico3">
+```{r, grafico3}
+ten_prescriptions_liveP <- head((real_prescriptions_of_interest %>% group_by(drug) %>% summarise(count = n()) %>% arrange(desc(count))),n=10)
+
+ggplot(ten_prescriptions_liveP, aes(x = drug)) +
+  geom_bar(aes(fill = drug, y = count), stat = "identity") +
+  labs(title = "Most frequent drugs in cases of patients who did not die*", x = "Drug", y = "Frequency", caption = "*Pacientes que no mueren durante su internación\nGráfico 3: recurrencias de las 10 drogas más prescritas en pacientes que no mueren") + 
+  guides(fill = guide_legend(title = "Drug name")) + 
+  scale_x_discrete(labels = NULL) +
+  scale_fill_manual(values = brewer.pal(10, "Paired")) +
+  theme(plot.caption = element_text(face = "italic", hjust = 0))
+
+```
+</div>
+
+<p style = "text-align:justify;"> En cambio, sobre los pacientes que fallecieron durante su internación, los medicamentos más prescritos con mayor número de repeticiones son DW5 (dextrosa 5% en agua), insulina, furosemida, NS, y cloruro de potasio respectivamente. El cloruro de sodio al 0.9% por su parte que se encuentra primero en los pacientes que no fallecieron, se encuentra en el puesto nueve en este caso. </p>
+
+<div id ="grafico4">
+```{r, grafico4}
+ten_prescriptions_deadP <- head((prescriptions_dead_patients %>% group_by(drug) %>% summarise(count = n()) %>% arrange(desc(count))), n=10)
+
+ggplot(ten_prescriptions_deadP, aes(x = drug)) +
+  geom_bar(aes(fill = drug, y = count), stat = "identity") +
+  labs(title = "Most frequent drugs in cases of patients who died*", x = "Drug", y = "Frequency", caption = "*Pacientes que mueren durante su internación
+Gráfico 4: recurrencias de las 10 drogas más prescritas en pacientes que mueren") + 
+  guides(fill = guide_legend(title = "Drug name")) + 
+  scale_x_discrete(labels = NULL) +
+  scale_fill_manual(values = brewer.pal(10, "Paired")) + 
+  theme(plot.caption = element_text(face = "italic", hjust = 0))
+```
+</div>
+
+<p style = "text-align:justify;"> Para profundizar el análisis, buscamos relaciones entre los medicamentos que se prescribieron a pacientes que sobreviven y los que mueren. Para realizar esto nos concentramos en la insulina y el cloruro de sodio, que como se puede ver en el <a href="#grafico3"> gráfico 3</a>, dentro de los pacientes que no fallecieron, son los tratamientos que tienen una diferencia más notable respecto al resto en cuanto a frecuencia. </p>
+
+<p style = "text-align:justify;"> A través de esto obtuvimos los siguientes datos. Sobre la insulina, en los pacientes que no mueren durante la internación, representa un 4.64% de las prescripciones que este grupo recibe. Por su parte, en los pacientes que fallecen representa un 4.99% del total. Respecto al cloruro de sodio al 0.9%, en los pacientes que vivieron representa un 6.08% del total de medicamentos que se les prescribieron mientras que en el caso de los pacientes que fallecieron, esta droga representa un 2.85% de las prescripciones. Esta información se ve reflejada en la siguiente imagen. </p>
+
+```{r, grafico5}
+percentages_data <- data.frame(
+  Group = c("Live Patient", "Dead Patient", "Live Patient", "Dead Patient"),
+  Drug = c("Insulin", "Insulin", "0.9% Sodium Chloride", "0.9% Sodium Chloride"),
+  Percentage = c(perc_insulin_live, perc_insulin_dead, perc_sodiumC_live, perc_sodiumC_dead)
+)
+
+ggplot(percentages_data, aes(x = Drug, y = Percentage, fill = Group)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Insulin / 0.9% Sodium Chloride comparison in dead and not dead patients",
+       x = NULL,
+       y = "Percentage",
+       fill = "Group", caption = "Gráfico 5: Porcentaje de las prescripciones a pacientes que mueren/viven que corresponden a insulina.\nIdem con cloruro de sodio al 0.9%" ) +
+  geom_text(aes(label = paste0(round(Percentage, 2), "%")),
+            position = position_dodge(width = 0.9),
+            vjust = -0.5) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 0.5)) + scale_fill_manual(values=c("red", "#55C4FF")) +
+  theme(plot.caption = element_text(face = "italic", hjust = 0))
+
+```
+
+<p style = "text-align:justify;"> Sobre este último punto resulta llamativa la diferencia porcentual que hay, ya que en los pacientes que dejaron el hospital con vida, recibieron cloruro de sodio en más de un 6%, mientras que en los que fallecieron el valor es menor al 3%. En el caso de la insulina, si bien hay diferencia, en cuanto a su valor porcentual no es tan amplia la misma. </p>
+
+<p style = "text-align:justify;"> Resultan datos relevantes ya que se podría pensar que ciertos medicamentos son más efectivos o convenientes a la hora de suministrarlos a pacientes con fibrilación auricular. En este caso a través de los datos analizados podemos concluir que el cloruro de sodio es parte del tratamiento más efectivo dentro de la muestra reducida que pudimos analizar, ya que la diferencia entre los pacientes que fallecieron y los que no utilizando este tratamiento fue la más grande. Si es parte del tratamiento más eficaz, el aumento de las prescripciones de cloruro de sodio al 0.9% podría evitar un mayor desarrollo de la enfermedad en pacientes que se encuentran en estado crítico. Una ventaja asociada con esto sería que en general, el cloruro de sodio es ampliamente accesible y económico, lo cual significa que es un tratamiento asequible en comparación con otros tratamientos vistos en esta investigación. </p>
+
+<p style = "text-align:justify;"> Por último, observando los medicamentos más prescritos para los pacientes que fallecen en el <a href="#grafico4"> gráfico 4</a>, podríamos analizar si hay ciertas drogas que no son recomendables, o que son menos eficientes. A través de esto se pueden realizar comparaciones y establecer ciertas diferencias entre los pacientes que mueren y los que no, principalmente en relación a sus tratamientos. Esta distinción es importante para poder encontrar el mejor medicamento para controlar la progresión de la enfermedad, ya que como mencionamos al principio de la investigación la progresión de la misma puede llevar a efectos secundarios graves y hasta mortales. </p>
+
+## Bibliografia
+  1. http://www.scielo.edu.uy/scielo.php?script=sci_arttext&pid=S1688-04202015000300012#:
+  
+  2. https://www.mayoclinic.org/es-es/diseases-conditions/atrial-fibrillation/symptoms-causes/syc-20350624
+  
+  3. https://www.abc.es/salud/enfermedades/abci-fibrilacion-auricular-mucho-mas-peligrosa-pensaba-201609091307_noticia.html#

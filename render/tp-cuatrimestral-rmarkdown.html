@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Bianca Verni, Sofia Marquevich, Delfina Dupiellet" />
+
+
+<title>TRABAJO PRÁCTICO CUATRIMESTRAL</title>
+
+<script src="site_libs/header-attrs-2.22/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">TRABAJO PRÁCTICO CUATRIMESTRAL</h1>
+<h4 class="author">Bianca Verni, Sofia Marquevich, Delfina
+Dupiellet</h4>
+
+</div>
+
+
+<h1 style="text-align:center;">
+<u> Análisis de la fibrilación auricular</u>
+</h1>
+<p style="text-align:justify;">
+En esta investigación vamos a analizar los datos de la base de datos
+MIMIC-III. El análisis del mismo brinda una oportunidad para comprender
+mejor las características clínicas y epidemiológicas de un grupo de
+pacientes críticamente enfermos, lo cual podría ayudar a mejorar el
+diagnóstico y el tratamiento de las enfermedades analizadas.
+</p>
+<p style="text-align:justify;">
+Nuestro análisis de datos se va a realizar en base a la fibrilación
+auricular. Esto se decidió en base a un análisis de la base de datos,
+donde encontramos a la fibrilación auricular entre las afecciones con
+mayor cantidad de repeticiones. Esto se puede ver a través de la
+<a href="#grafico1"> siguiente imagen</a> que presenta las recurrencias
+de los 10 diagnósticos más reiterados, dentro de las cuales se encuentra
+el que decidimos analizar, cuyo código ICD 9 (por sus siglas,
+International Statistical Classification of Diseases and Related Health
+Problems) es 42731.
+</p>
+<div id="grafico1">
+<p><img src="tp-cuatrimestral-rmarkdown_files/figure-html/grafico1-1.png" width="672" /></p>
+</div>
+<p style="text-align:justify;">
+Generalmente, la enfermedad tiene una historia de larga duración
+caracterizada por progresión desde la forma paroxística (donde los
+síntomas de fibrilación auricular aparecen y desaparecen, y generalmente
+duran de unos pocos minutos a horas) a la permanente (donde el ritmo
+irregular del corazón no puede restaurarse). Los pacientes con la misma
+tienen un riesgo de ACV y muerte, cinco y dos veces mayor que la
+población normal respectivamente.<a
+href="http://www.scielo.edu.uy/scielo.php?script=sci_arttext&amp;pid=S1688-04202015000300012#"><sup>1<sup></a>
+</p>
+<p style="text-align:justify;">
+La forma progresiva de la enfermedad hace que el análisis de los
+tratamientos y medicamentos utilizados para atenuar los efectos sea
+crucial, ya que el control de la enfermedad puede evitar que progrese y
+provoque los síntomas más graves como mencionados anteriormente. Por lo
+tanto, a través de esta investigación queremos evaluar la eficacia de
+los distintos tratamientos disponibles, utilizando MIMIC-III para
+comparar los resultados de los pacientes que recibieron diferentes
+tratamientos y examinar el impacto de los mismos en los resultados de
+los pacientes.
+</p>
+<p style="text-align:justify;">
+La fibrilación auricular se trata de un ritmo cardíaco irregular y a
+menudo muy rápido (arritmia) que puede provocar coágulos de sangre en el
+corazón.<a
+href="https://www.mayoclinic.org/es-es/diseases-conditions/atrial-fibrillation/symptoms-cau%20ses/syc-20350624#"><sup>2<sup></a>
+La enfermedad aumenta el riesgo de accidente cerebrovascular,
+insuficiencia cardíaca y otras complicaciones relacionadas con el
+corazón. Dentro de las fibrilaciones, la misma se asocia con un mayor
+riesgo de muerte y con un riesgo incrementado de enfermedades renales y
+cardiovasculares.<a
+href="https://www.abc.es/salud/enfermedades/abci-fibrilacion-auricular-mucho-mas-peligro%20sa-pensaba-201609091307_noticia.html#"><sup>3<sup></a>
+</p>
+<center>
+<img src="trabajo/fibrilacion.jpg" />
+</center>
+<p>
+ 
+</p>
+<p style="text-align:justify;">
+Los episodios de fibrilación auricular pueden aparecer y desaparecer o
+ser persistentes. En muchas personas, la fibrilación auricular puede ser
+asintomática. Sin embargo, la fibrilación auricular puede provocar
+latidos cardíacos rápidos y fuertes (palpitaciones), falta de aire o
+debilidad. Otros síntomas incluyen dolor en el pecho, mareos y fatiga.<a
+href="https://www.mayoclinic.org/es-es/diseases-conditions/atrial-fibrillation/symptoms-cau%20ses/syc-20350624#"><sup>2<sup></a>
+</p>
+<p style="text-align:justify;">
+El tratamiento de la fibrilación auricular puede incluir medicamentos,
+terapia para restablecer el ritmo cardíaco y procedimientos con catéter
+para bloquear las señales. Utilizando las tablas de la base de datos
+podemos acceder a los pacientes diagnosticados con fibrilación auricular
+y ver qué medicamentos se recetan para los mismos.
+</p>
+<p style="text-align:justify;">
+Para realizar este análisis, planteamos las siguientes preguntas,
+desarrollando un código en R para responderlas.
+</p>
+<ol style="list-style-type: decimal">
+<li><p>¿Cuáles son las afecciones con mayor prevalencia diagnosticadas
+entre los pacientes del hospital?</p></li>
+<li><p>Teniendo en cuenta que el segundo diagnóstico más reiterado es
+fibrilación auricular, ¿cuántos de los pacientes que presentan esta
+alteración mueren durante su estancia en el hospital? ¿Qué porcentaje
+del total representa?</p></li>
+<li><p>Sobre los pacientes que no fallecen durante su internación,
+¿cuales son los medicamentos que se prescriben en mayor medida?</p></li>
+<li><p>Sobre los pacientes que mueren mientras están internados, ¿cuales
+son los medicamentos que se les prescriben en mayor medida?</p></li>
+<li><p>Teniendo en cuenta los dos puntos anteriores, como es la relación
+entre las prescripciones de cloruro de sodio al 0.9% e insulina (los dos
+medicamentos más recetados para pacientes que no fallecen)?</p></li>
+</ol>
+<p style="text-align:justify;">
+La primera pregunta fue para iniciar la investigación, y de sus
+resultados surgieron las siguientes. Buscamos encontrar alguna relación
+entre los medicamentos prescritos a los pacientes y cuáles de los mismos
+fallecían. Además, buscamos conocer qué tan alto es el porcentaje de
+mortalidad de las personas que fueron internadas con este padecimiento.
+</p>
+<p style="text-align:justify;">
+A partir de las preguntas planteadas logramos obtener algunos datos que
+consideramos relevantes. Los mismos se encuentran en el archivo adjunto
+de R y se detallan a continuación.
+</p>
+<p style="text-align:justify;">
+Entre las afecciones con mayor cantidad de repeticiones, ocupando el
+segundo lugar, se encuentra la fibrilación auricular, lo cual se puede
+ver en el <a href="#grafico1"> gráfico 1</a>. Por las razones aclaradas
+anteriormente, decidimos analizar distintos eventos y/o factores
+relacionados a los pacientes cuyo diagnóstico es ese.
+</p>
+<p style="text-align:justify;">
+A través de esto descubrimos que sobre un total de 48 pacientes, 13
+mueren durante su internación, lo que representa un 27.1%, mientras que
+los 35 (72.9%) restantes salen con vida del hospital, ya sea porque son
+dados de alta o porque son trasladados a otro centro médico. El
+siguiente <a href="#grafico2"> gráfico </a> presenta dicha información,
+y resalta la diferencia entre la cantidad de pacientes que no
+fallecieron y los que sí.
+</p>
+<div id="grafico2">
+<p><img src="tp-cuatrimestral-rmarkdown_files/figure-html/grafico2-1.png" width="672" /></p>
+</div>
+<p style="text-align:justify;">
+Esta gran diferencia nos llevó a analizar los tratamientos que tuvieron
+los pacientes que no fallecieron, y lo mismo con los que sí, para
+investigar la causa de la misma.
+</p>
+<p style="text-align:justify;">
+Tomando los pacientes diagnosticados con fibrilación auricular que no
+fallecieron (que integran el 72.9%), se analiza cuales son los
+medicamentos prescriptos que más se repiten. Entre estos se encuentran
+Cloruro de sodio al 0.9%, insulina, cloruro de potasio, cloruro de sodio
+al 0.9% (mini bag plus), dextrosa iso-osmótica en orden de más a menos
+comúnmente prescriptos.
+</p>
+<div id="grafico3">
+<p><img src="tp-cuatrimestral-rmarkdown_files/figure-html/grafico3-1.png" width="672" /></p>
+</div>
+<p style="text-align:justify;">
+En cambio, sobre los pacientes que fallecieron durante su internación,
+los medicamentos más prescritos con mayor número de repeticiones son DW5
+(dextrosa 5% en agua), insulina, furosemida, NS, y cloruro de potasio
+respectivamente. El cloruro de sodio al 0.9% por su parte que se
+encuentra primero en los pacientes que no fallecieron, se encuentra en
+el puesto nueve en este caso.
+</p>
+<div id="grafico4">
+<p><img src="tp-cuatrimestral-rmarkdown_files/figure-html/grafico4-1.png" width="672" /></p>
+</div>
+<p style="text-align:justify;">
+Para profundizar el análisis, buscamos relaciones entre los medicamentos
+que se prescribieron a pacientes que sobreviven y los que mueren. Para
+realizar esto nos concentramos en la insulina y el cloruro de sodio, que
+como se puede ver en el <a href="#grafico3"> gráfico 3</a>, dentro de
+los pacientes que no fallecieron, son los tratamientos que tienen una
+diferencia más notable respecto al resto en cuanto a frecuencia.
+</p>
+<p style="text-align:justify;">
+A través de esto obtuvimos los siguientes datos. Sobre la insulina, en
+los pacientes que no mueren durante la internación, representa un 4.64%
+de las prescripciones que este grupo recibe. Por su parte, en los
+pacientes que fallecen representa un 4.99% del total. Respecto al
+cloruro de sodio al 0.9%, en los pacientes que vivieron representa un
+6.08% del total de medicamentos que se les prescribieron mientras que en
+el caso de los pacientes que fallecieron, esta droga representa un 2.85%
+de las prescripciones. Esta información se ve reflejada en la siguiente
+imagen.
+</p>
+<p><img src="tp-cuatrimestral-rmarkdown_files/figure-html/grafico5-1.png" width="672" /></p>
+<p style="text-align:justify;">
+Sobre este último punto resulta llamativa la diferencia porcentual que
+hay, ya que en los pacientes que dejaron el hospital con vida,
+recibieron cloruro de sodio en más de un 6%, mientras que en los que
+fallecieron el valor es menor al 3%. En el caso de la insulina, si bien
+hay diferencia, en cuanto a su valor porcentual no es tan amplia la
+misma.
+</p>
+<p style="text-align:justify;">
+Resultan datos relevantes ya que se podría pensar que ciertos
+medicamentos son más efectivos o convenientes a la hora de
+suministrarlos a pacientes con fibrilación auricular. En este caso a
+través de los datos analizados podemos concluir que el cloruro de sodio
+es parte del tratamiento más efectivo dentro de la muestra reducida que
+pudimos analizar, ya que la diferencia entre los pacientes que
+fallecieron y los que no utilizando este tratamiento fue la más grande.
+Si es parte del tratamiento más eficaz, el aumento de las prescripciones
+de cloruro de sodio al 0.9% podría evitar un mayor desarrollo de la
+enfermedad en pacientes que se encuentran en estado crítico. Una ventaja
+asociada con esto sería que en general, el cloruro de sodio es
+ampliamente accesible y económico, lo cual significa que es un
+tratamiento asequible en comparación con otros tratamientos vistos en
+esta investigación.
+</p>
+<p style="text-align:justify;">
+Por último, observando los medicamentos más prescritos para los
+pacientes que fallecen en el <a href="#grafico4"> gráfico 4</a>,
+podríamos analizar si hay ciertas drogas que no son recomendables, o que
+son menos eficientes. A través de esto se pueden realizar comparaciones
+y establecer ciertas diferencias entre los pacientes que mueren y los
+que no, principalmente en relación a sus tratamientos. Esta distinción
+es importante para poder encontrar el mejor medicamento para controlar
+la progresión de la enfermedad, ya que como mencionamos al principio de
+la investigación la progresión de la misma puede llevar a efectos
+secundarios graves y hasta mortales.
+</p>
+<div id="bibliografia" class="section level2">
+<h2>Bibliografia</h2>
+<ol style="list-style-type: decimal">
+<li><p><a
+href="http://www.scielo.edu.uy/scielo.php?script=sci_arttext&amp;pid=S1688-04202015000300012#"
+class="uri">http://www.scielo.edu.uy/scielo.php?script=sci_arttext&amp;pid=S1688-04202015000300012#</a>:</p></li>
+<li><p><a
+href="https://www.mayoclinic.org/es-es/diseases-conditions/atrial-fibrillation/symptoms-causes/syc-20350624"
+class="uri">https://www.mayoclinic.org/es-es/diseases-conditions/atrial-fibrillation/symptoms-causes/syc-20350624</a></p></li>
+<li><p><a
+href="https://www.abc.es/salud/enfermedades/abci-fibrilacion-auricular-mucho-mas-peligrosa-pensaba-201609091307_noticia.html#"
+class="uri">https://www.abc.es/salud/enfermedades/abci-fibrilacion-auricular-mucho-mas-peligrosa-pensaba-201609091307_noticia.html#</a></p></li>
+</ol>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
